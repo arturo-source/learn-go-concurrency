@@ -8,7 +8,7 @@ The last thing that you should take a quick look is this video <https://youtu.be
 
 ## To do
 
-- I'd like to take a look are <https://go.dev/blog/pipelines> and <https://go.dev/talks/2012/concurrency.slide#1>. These are some important articles that I've found.
+- I'd like to take a look are <https://go.dev/blog/pipelines>, <https://go.dev/talks/2012/concurrency.slide#1>, <https://go.dev/doc/articles/race_detector>. These are some important articles that I've found.
 - What is the best way to control errors? In channels you only send one type of data.
 
 ## Frequently asked questions
@@ -124,3 +124,48 @@ Note that if you want to `wg.Done()` or `mu.Lock()` (for [WaitGroup](https://pkg
 ```txt
 Values containing the types defined in this package should not be copied.
 ```
+
+### Do goroutines and channels produce memory leaks?
+
+Short answer: **channels no, goroutines yes**. As said before, channels are managed by the garbage collector, you should close channels if you want to communicate that you will not continue sending data. It's not the same for the goroutines, if you block a goroutine, don't stop an infinite for loop, or whatever that prevents the goroutine finishing, the garbage collector will not be able to close that goroutine. Let's see a simple example:
+
+```go
+package main
+
+import (
+ "errors"
+ "fmt"
+ "runtime"
+ "time"
+)
+
+func NumGoroutines(when string) {
+ fmt.Println(when, runtime.NumGoroutine())
+}
+
+func main() {
+ defer NumGoroutines("After end:")
+ NumGoroutines("Beginning:")
+ errc := make(chan error) // channel len 0
+
+ go func() {
+  // Do some stuff that produces error
+  err := errors.New("some error")
+  errc <- err
+ }() // If nobody reads errc (<-errc), goroutine keeps blocked and never ends...
+ NumGoroutines("After starting a goroutine:")
+
+ // The code continues...
+ time.Sleep(time.Second)
+}
+```
+
+With `runtime.NumGoroutine()` we can count active goroutines. With `defer` we execute that after the `main` end. Then, we start a goroutine that produces an error, we could expect that this error will be read, but if nobody reads errc, this goroutine will never end. That code produces the next output:
+
+```txt
+Beginning: 1
+After starting a goroutine: 2
+After end: 2
+```
+
+This problem would be solved using a buffer to errc `errc := make(chan error, 1)`. This don't block the goroutine, then it's finished, and you don't have to worry about `errc` because garbage collector will free `errc` memory when it detects it'll never be used.
