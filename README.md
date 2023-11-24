@@ -6,11 +6,15 @@ Obviously you should also read the Go tour <https://go.dev/tour/concurrency/1>, 
 
 The last thing that you should take a quick look is this video <https://youtu.be/LvgVSSpwND8>. Jake Wright talks about WaitGroup, Channels, Deadlock and Channel closing, buffered Channels, Select statement, and the Worker pool pattern, this is a good introduction for Golang concurrency. **Old but gold**.
 
-At this time, I recommend you to stop reading, and practice with some small problems (you can find some of them in this repository). After solving some small problems, you can continue reading this post <https://go.dev/blog/pipelines> from the go official blog. This post takes a real example where you can apply concurrency, and breaks it down carefully, explaining why each decision is made.
+At this time, I recommend you to stop reading, and practice with some small problems (e.g. [Tree](https://github.com/arturo-source/practice-go-concurrency/tree/main/01.%20Tree) and [Crawler](https://github.com/arturo-source/practice-go-concurrency/tree/main/02.%20Crawler)).
+
+After solving some small problems, you can continue watching the [Rob Pike conference](https://www.youtube.com/watch?v=f6kdp27TYZs) (or you can read [the slides](https://go.dev/talks/2012/concurrency.slide#1), but I recommend the video). Here he explains what is concurrency, some Go concurrency "patterns", and why Go concurrency was made as a part of the language. **Old but gold**.
+
+If you want to get harder, read this post <https://go.dev/blog/pipelines> from the go official blog. This post takes a real example where you can apply concurrency, and breaks it down carefully, explaining why each decision is made.
 
 ## To do
 
-- I'd like to take a look at <https://go.dev/talks/2012/concurrency.slide#1>, <https://go.dev/doc/articles/race_detector>. These are some important articles that I've found.
+- I'd like to take a look at <https://go.dev/doc/articles/race_detector>, <https://github.com/golang/go/wiki/LearnConcurrency>. These are some important articles that I've found.
 - What is the best way to control errors? In channels you only send one type of data.
 
 ## Frequently asked questions
