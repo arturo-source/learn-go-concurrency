@@ -12,20 +12,13 @@ After solving some small problems, you can continue watching the [Rob Pike confe
 
 If you want to get harder, read this post <https://go.dev/blog/pipelines> from the go official blog. This post takes a real example where you can apply concurrency, and breaks it down carefully, explaining why each decision is made. I have modified the problem to do a similar exercise using Go's concurrency: [MD5 files](03.%20MD5%20files).
 
-## To do
+Then, I'll attach some questions I had during my learning process here:
 
-- I'd like to take a look at <https://go.dev/doc/articles/race_detector>, <https://github.com/golang/go/wiki/LearnConcurrency>. These are some important articles that I've found.
-- What is the best way to control errors? In channels you only send one type of data.
-
-## Frequently asked questions
-
-Here I'll attach some questions I had during my learning process.
+## Channels
 
 ### Who should close the channel?
 
 Always **the sender**. Trying to write a closed channel will panic and terminate the program. Trying to read a closed channel will return a nil value (it depends on the channel type: bool -> false, int -> 0, etc.). It's mentioned on [this page](https://go.dev/tour/concurrency/4) of the Go tour.
-
-I also would like to add that if you have multiple senders, you should look for an alternative to close the channel. If one sender close the channel, and the other one tries to send more data, the program will panic.
 
 ### Should I close the channel?
 
@@ -47,6 +40,25 @@ func main() {
 
 If you use the for-range golang style, this will end when the channel is closed. You will not have to worry about checking if channel is closed.
 
+### What causes panic with channels?
+
+- Use a non-initialized channel (var ch chan int).
+- Send data through a closed channel.
+- Close an already closed channel.
+- Deadlocks: `fatal error: all goroutines are asleep - deadlock!`
+  - Receive from a non-closed channel. If no one sends data.
+  - Send to a filled channel. If no one receives the data.
+
+Initializing channels is easy, but `var ch chan int` is not initializing. Instead use `var ch chan int = make(chan int)` or `ch := make(chan int)`.
+
+You have to be quiet with closed channels. As said before, you can only send data through non-closed channels. If you send data through a closed channel, it will panic. If you close an already closed channel, it will panic too. (I will add an example of how to close multiple sender channel later...)
+
+Reading a channel can also cause panic, if you don't send data through this channel. The previous example `for i := range c {...}` will panic if the channel `c` is never closed.
+
+But writting can also cause panic, if you don't receive data through this channel. The previous example `fibonacci(c)` will panic if `c` is never read. If the `for` does not exist, when the channel receives the 11th fibonacci result, its buffer will be filled, and it will panic.
+
+## Select
+
 ### What is a select?
 
 **Select is a switch-like solution to wait for one of multiple channels**. Sometimes you will want to block the goroutine until one of multiple channels can run. This is the perfect case to use select. It's important to know that select accepts _reading_ case and _writing_ case.
@@ -62,7 +74,7 @@ case x := <- b: // b is reading the channel
 
 But sometimes you will want to wait for multiple channels in an infinite for loop, to response all of them.
 
-#### Be quiet with Select
+### Be quiet with Select
 
 If you run a `select` in a for loop, with a `default` case, the program may not act as you expected. This is an example **modified** from <https://go.dev/tour/concurrency/6>:
 
@@ -115,9 +127,13 @@ for {
 
 This seems a good way to block a goroutine until `a` or `b` receives data, infinitely. But if you know that `a` can be closed, you may think that the select will only choose `b` case, but **no**. `msg1` will be the `a` nil value (false for bool, 0 for int, etc.) and will be executed infinitely, and it will cause a 100% of use of your CPU. So you should think how to control this case.
 
+## Timers
+
 ### How to set timeouts?
 
 This is clearly explained in <https://gobyexample.com/timeouts>. You can use `time` from the Go standard packages, which provide some useful functions like `After` or `Tick`. You can combine this functions with `select` to get what you want.
+
+## Synchronization
 
 ### Synchronize multiple goroutines
 
@@ -130,6 +146,8 @@ Note that if you want to `wg.Done()` or `mu.Lock()` (for [WaitGroup](https://pkg
 ```txt
 Values containing the types defined in this package should not be copied.
 ```
+
+## More questions
 
 ### Do goroutines and channels produce memory leaks?
 
@@ -175,3 +193,8 @@ After end: 2
 ```
 
 This problem would be solved using a buffer to errc `errc := make(chan error, 1)`. This don't block the goroutine, then it's finished, and you don't have to worry about `errc` because garbage collector will free `errc` memory when it detects it'll never be used.
+
+## To do
+
+- I'd like to take a look at <https://go.dev/doc/articles/race_detector>, <https://github.com/golang/go/wiki/LearnConcurrency>. These are some important articles that I've found.
+- What is the best way to control errors? In channels you only send one type of data.
