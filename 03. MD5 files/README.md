@@ -1,4 +1,4 @@
-# Exercise: Web Crawler
+# Exercise: Hash files
 
 > This exercise is taken from <https://go.dev/blog/pipelines#digesting-a-tree> and modified to be a little bit more difficult. You can find my solution in [this respository](https://github.com/arturo-source/repeated-files-detector).
 

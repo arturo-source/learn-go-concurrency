@@ -10,7 +10,7 @@ At this time, I recommend you to stop reading, and practice with some small prob
 
 After solving some small problems, you can continue watching the [Rob Pike conference](https://www.youtube.com/watch?v=f6kdp27TYZs) (or you can read [the slides](https://go.dev/talks/2012/concurrency.slide#1), but I recommend the video). Here he explains what is concurrency, some Go concurrency "patterns", and why Go concurrency was made as a part of the language. **Old but gold**.
 
-If you want to get harder, read this post <https://go.dev/blog/pipelines> from the go official blog. This post takes a real example where you can apply concurrency, and breaks it down carefully, explaining why each decision is made. I have modified the problem to do a similar execire using Go's concurrency: [MD5 files](03.%20MD5%20files).
+If you want to get harder, read this post <https://go.dev/blog/pipelines> from the go official blog. This post takes a real example where you can apply concurrency, and breaks it down carefully, explaining why each decision is made. I have modified the problem to do a similar exercise using Go's concurrency: [MD5 files](03.%20MD5%20files).
 
 ## To do
 
