@@ -14,12 +14,12 @@ func Map[T1, T2 any](arr []T1, f func(item T1, index int) T2) []T2 {
 	wg.Add(numworkers)
 
 	worker := func(startIndex, endIndex int) {
+		defer wg.Done()
+
 		for i := startIndex; i < endIndex; i++ {
 			t2 := f(arr[i], i)
 			arrT2[i] = t2
 		}
-
-		wg.Done()
 	}
 
 	chunkSize := len(arr) / numworkers
@@ -47,11 +47,11 @@ func Filter[T any](arr []T, f func(item T, index int) bool) []T {
 	wg.Add(numworkers)
 
 	worker := func(startIndex, endIndex int) {
+		defer wg.Done()
+
 		for i := startIndex; i < endIndex; i++ {
 			arrBooled[i] = f(arr[i], i)
 		}
-
-		wg.Done()
 	}
 
 	chunkSize := len(arr) / numworkers
