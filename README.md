@@ -133,7 +133,11 @@ This seems a good way to block a goroutine until `a` or `b` receives data, infin
 
 ### How to set timeouts?
 
-This is clearly explained in <https://gobyexample.com/timeouts>. You can use `time` from the Go standard packages, which provide some useful functions like `After` or `Tick`. You can combine this functions with `select` to get what you want.
+This is clearly explained in <https://gobyexample.com/timeouts>. You can use [time package](https://pkg.go.dev/time) from the Go standard packages, which provide some useful functions like `After` or `Tick`. You can combine this functions with `select` to get what you want.
+
+Also, some librarires, like the http standard library, allows you to set timeouts directly when creating the http client, or server.
+
+But the standard way to set timeouts for complex programs isn't the the `time` package, you should use the [context package](https://pkg.go.dev/context).
 
 ## Synchronization
 
@@ -244,6 +248,14 @@ func main() {
  wg.Wait()
 }
 ```
+
+## Deadlocks
+
+TODO
+
+## Go concurrency patterns
+
+TODO
 
 ## More questions
 
