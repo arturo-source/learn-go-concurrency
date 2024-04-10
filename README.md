@@ -137,7 +137,11 @@ This is clearly explained in <https://gobyexample.com/timeouts>. You can use `ti
 
 ### Synchronize multiple goroutines
 
-There are multiple ways to do this, but the more comprehensive one is [using WaitGroup](https://gobyexample.com/waitgroups). You could also [use a channel](https://gobyexample.com/channel-synchronization) but this come more difficult when you try to synchronize multiple goroutines.
+One of the most useful utilities of golang channels is synchronizing read and write operations. But there are other options to do that.
+
+If you want to throw multiple goroutines in the same function, and wait until the end, the more comprehensive way is [using WaitGroup](https://gobyexample.com/waitgroups). You could also [use a channel](https://gobyexample.com/channel-synchronization) but it is easier and more readable with WaitGroup in this case.
+
+If you want to implement a semaphore you could use a channel, but it can become hard to read again, so the reasonable way is [using Mutex](https://gobyexample.com/mutexes).
 
 ### Important about Mutex and WaitGroup
 
