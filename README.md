@@ -12,7 +12,9 @@ After solving some small problems, you can continue watching the [Rob Pike confe
 
 If you want to get harder, read this post <https://go.dev/blog/pipelines> from the go official blog. This post takes a real example where you can apply concurrency, and breaks it down carefully, explaining why each decision is made. I have modified the problem to do a similar exercise using Go's concurrency: [MD5 files](03.%20MD5%20files).
 
-Then, I'll attach some questions I had during my learning process here:
+Race conditions are important to consider in any language that allows multi-threading. [In this post](https://go.dev/blog/race-detector) you'll see a real story of the go team detecting one, with the go `-race` tool. But if you want a more detailed explanation of how to use that tool, read that one: <https://go.dev/doc/articles/race_detector>.
+
+I'll attach some questions I had during my learning process here:
 
 ## Channels
 
@@ -151,6 +153,98 @@ Note that if you want to `wg.Done()` or `mu.Lock()` (for [WaitGroup](https://pkg
 Values containing the types defined in this package should not be copied.
 ```
 
+## Race conditions
+
+### What are race conditions?
+
+A race condition occurs when two (or more) goroutines try to use the same memory. Two different routines can read the same place of memory safely. But when those two try to read and write, or write and write in the same space of memory, it produces a **race condition**.
+
+### How to avoid race conditions?
+
+Avoiding race conditions is simple and complicated at the same time. You just have to follow the previous commented (do not write and write, or write and read the same address of memory at the same time). It is easy to understand, but in the practice you can create a race condition, even if you know that, because programming becomes harder when you write bigger programs.
+
+Fortunately, golang provides powerful tools to operate with concurrency, and avoid race conditions.
+
+1. The already mentioned **channels** are syntactic sugar for block operations (channels are even more, but also, block operations).
+2. The [sync package](https://pkg.go.dev/sync) provides safe **map** implementation. A **wait group** to synchronize routines easily. Also some lower-level utilities like **mutex**.
+3. The [sync/atomic package](https://pkg.go.dev/sync/atomic) provides safe operations with basic types: bool, int, etc.
+
+### How to detect race conditions?
+
+A race condition can **NOT** be detected at compile-time. But there are tools to detect them at run-time.
+
+Go implemented a race detector in go1.1, so you can simply add `-race` option when you build, run, test, or install a golang program. But be quiet, because this option makes the program much more slower, and it'll cosume more resources, so use that option only in development enviroments.
+
+```sh
+go run -race main.go
+```
+
+### Examples of race conditions
+
+Default maps are **not** concurrent safe, even if you initialice the map before accessing it. Next example produces race conditions.
+
+```go
+func main() {
+ values := map[string]int{"first": 0, "second": 0}
+ wg := sync.WaitGroup{}
+ wg.Add(len(values))
+
+ for k := range values {
+  go func(k string) {
+   defer wg.Done()
+
+   for j := 0; j < 10; j++ {
+    values[k]++
+   }
+  }(k)
+ }
+
+ wg.Wait()
+ fmt.Println(values)
+}
+```
+
+Slices do not share memory, so they are concurrent safe. But **be quiet**! This only happens when the slice is already filled. If you try to append data to the slice, it can produce a race condition.
+
+```go
+func main() {
+ values := []int{0, 0}
+ wg := sync.WaitGroup{}
+ wg.Add(len(values))
+
+ for i := range values {
+  go func(i int) {
+   defer wg.Done()
+
+   for j := 0; j < 10; j++ {
+    values[i]++
+   }
+  }(i)
+ }
+
+ wg.Wait()
+ fmt.Println(values)
+}
+```
+
+Before go1.22 there was kind of a "bug" that shared memory of the loop index. Next example produced race conditions, but now, it doesn't, so you are allowed to do it.
+
+```go
+func main() {
+ var wg sync.WaitGroup
+ wg.Add(10)
+
+ for i := 0; i < 10; i++ {
+  go func() {
+   defer wg.Done()
+   fmt.Println(i)
+  }()
+ }
+
+ wg.Wait()
+}
+```
+
 ## More questions
 
 ### Do goroutines and channels produce memory leaks?
@@ -200,5 +294,5 @@ This problem would be solved using a buffer to errc `errc := make(chan error, 1)
 
 ## To do
 
-- I'd like to take a look at <https://go.dev/doc/articles/race_detector>, <https://github.com/golang/go/wiki/LearnConcurrency>. These are some important articles that I've found.
+- I'd like to take a look at <https://github.com/golang/go/wiki/LearnConcurrency>.
 - What is the best way to control errors? In channels you only send one type of data.
